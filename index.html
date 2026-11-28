@@ -153,6 +153,14 @@ section { padding: 96px 0; position: relative; }
 .press-card:nth-child(2) .nie-tag { background: var(--cyan); color: #0b1437; }
 @media (max-width: 860px) { .press-row { grid-template-columns: 1fr; } }
 
+#visitCounter {
+  position: fixed; right: 16px; bottom: 16px; z-index: 120; padding: 10px 16px; border-radius: 999px;
+  font-size: .85rem; font-weight: 700; color: #1a1200;
+  background: linear-gradient(135deg, var(--gold), var(--pink)); box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+#visitCounter[hidden] { display: none; }
+
 /* NAV */
 nav {
   position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 50;
@@ -463,7 +471,7 @@ footer { padding: 36px 0; text-align: center; color: var(--muted); font-size: 0.
 
 <nav>
   <div class="container nav-inner">
-    <a href="#home" class="logo">Monisha<span>.</span>Chambial</a>
+    <a href="#home" class="logo">Monisha Chambial</a>
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
       <li><a href="#courses">Courses</a></li>
@@ -480,7 +488,7 @@ footer { padding: 36px 0; text-align: center; color: var(--muted); font-size: 0.
 <section class="hero" id="home">
   <div class="container hero-grid">
     <div class="reveal">
-      <span class="pronoun">She / Her</span>
+      
       <h1>Monisha <span class="grad-text">Chambial</span></h1>
       <div class="role">CBSE National Resource Person | HOD Computer Science &amp; Innovation | PGT | AI &amp; EdTech Strategist</div>
       <div class="loc">Driving digital transformation in K-12 · AR/VR enthusiast · Global Top 50 Mentor · CBSE | IB · Pune Division, Maharashtra, India</div>
@@ -975,6 +983,7 @@ footer { padding: 36px 0; text-align: center; color: var(--muted); font-size: 0.
   <div class="container">© <span id="yr"></span> Monisha Chambial · Online Computer Science &amp; AI Classes</div>
 </footer>
 
+<div id="visitCounter" hidden aria-live="polite"></div>
 <div id="lightbox" aria-hidden="true"><img alt=""></div>
 
 <script>
@@ -1045,6 +1054,22 @@ document.getElementById("yr").textContent = new Date().getFullYear();
   }
   window.addEventListener("scroll", progress, { passive: true });
   progress();
+})();
+
+/* Visitor counter (shared database; counts visits from signed-in viewers) */
+(async function () {
+  var box = document.getElementById("visitCounter");
+  try {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    var db = await window.claude.use("db");
+    if (!db) return;
+    var visits = db.collection("visits");
+    visits.add({ at: Date.now() }).catch(function () {});
+    visits.onSnapshot(function (snap) {
+      box.textContent = "👁 " + snap.size + (snap.size === 1 ? " visitor" : " visitors");
+      box.hidden = false;
+    });
+  } catch (e) { /* counter stays hidden if the database is unavailable */ }
 })();
 
 /* Lightbox for photos */
